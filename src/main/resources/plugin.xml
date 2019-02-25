@@ -1,0 +1,34 @@
+<plugin>
+    <extension
+            point="com.katalon.platform.extensions">
+        <point
+                id="com.katalon.plugin.testrail.TestRailEventListenerInitializer"
+                extensionPointId="com.katalon.platform.api.extension.eventListener"
+                implementationClass="com.katalon.plugin.testrail.TestRailEventListenerInitializer">
+        </point>
+    </extension>
+    <extension
+            point="com.katalon.platform.extensions">
+        <point
+                id="com.katalon.plugin.testrail.TestRailToolItemDescription"
+                extensionPointId="com.katalon.platform.api.extension.newToolItem"
+                implementationClass="com.katalon.plugin.testrail.TestRailToolItemDescription">
+        </point>
+    </extension>
+    <extension
+         point="com.katalon.platform.extensions">
+      <point
+            id="com.katalon.plugin.testrail.TestRailPluginPreferencePage"
+            extensionPointId="com.katalon.platform.api.extension.pluginPreferencePage"
+            implementationClass="com.katalon.plugin.testrail.TestRailPluginPreferencePage">
+      </point>
+   </extension>
+    <extension
+            point="com.katalon.platform.extensions">
+        <point
+                id="com.katalon.plugin.testrail.TestRailTestCaseIntegrationPage"
+                extensionPointId="com.katalon.platform.api.extension.testCaseIntegrationViewDescription"
+                implementationClass="com.katalon.plugin.testrail.TestRailTestCaseIntegrationViewDescription">
+        </point>
+    </extension>
+</plugin>
