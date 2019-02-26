@@ -108,10 +108,13 @@ public class TestRailPreferencePage extends PreferencePage implements TestRailCo
         thread = new Thread(() -> {
             try {
                 // test connection here
-                APIClient client = new APIClient(url);
-                client.setUser(username);
-                client.setPassword(password);
-                JSONArray projects = (JSONArray) client.sendGet("get_projects");
+//                APIClient client = new APIClient(url);
+//                client.setUser(username);
+//                client.setPassword(password);
+//                JSONArray projects = (JSONArray) client.sendGet("get_projects");
+
+                TestRailConnector connector = new TestRailConnector(url, username, password);
+                connector.connect();
 
                 syncExec(() -> {
                     lblConnectionStatus
@@ -188,9 +191,9 @@ public class TestRailPreferencePage extends PreferencePage implements TestRailCo
             chckEnableIntegration.setSelection(pluginStore.getBoolean(TestRailConstants.PREF_TESTRAIL_ENABLED, false));
             chckEnableIntegration.notifyListeners(SWT.Selection, new Event());
 
-            txtUsername.setText(pluginStore.getString(TestRailConstants.PREF_TESTRAIL_USERNAME, ""));
-            txtPassword.setText(pluginStore.getString(TestRailConstants.PREF_TESTRAIL_PASSWORD, ""));
-            txtUrl.setText(pluginStore.getString(TestRailConstants.PREF_TESTRAIL_URL, ""));
+            txtUsername.setText(pluginStore.getString(TestRailConstants.PREF_TESTRAIL_USERNAME, "haimnguyen@kms-technology.com"));
+            txtPassword.setText(pluginStore.getString(TestRailConstants.PREF_TESTRAIL_PASSWORD, "gYokVchRRCBXoIFAcVUJ"));
+            txtUrl.setText(pluginStore.getString(TestRailConstants.PREF_TESTRAIL_URL, "https://haimnguyen.testrail.io/"));
 
             container.layout(true, true);
         } catch (ResourceException e) {

@@ -1,15 +1,29 @@
 package com.katalon.plugin.testrail;
 
+import org.json.simple.JSONObject;
 import org.osgi.service.event.Event;
 
 import com.katalon.platform.api.event.EventListener;
 import com.katalon.platform.api.event.ExecutionEvent;
-import com.katalon.platform.api.exception.ResourceException;
 import com.katalon.platform.api.execution.TestSuiteExecutionContext;
 import com.katalon.platform.api.extension.EventListenerInitializer;
 import com.katalon.platform.api.preference.PluginPreference;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class TestRailEventListenerInitializer implements EventListenerInitializer, TestRailComponent {
+    private String parseId(String text, String patternString) {
+        //todo : split "/"
+        Pattern pattern = Pattern.compile(patternString);
+        Matcher matcher = pattern.matcher(text);
+        if (matcher.find()) {
+            return matcher.group(1);
+        } else {
+            System.out.println("Not found ID in " + text);
+            return "";
+        }
+    }
 
     @Override
     public void registerListener(EventListener listener) {
@@ -37,8 +51,53 @@ public class TestRailEventListenerInitializer implements EventListenerInitialize
                                     + "\nTotal errors: " + Integer.toString(testSuiteSummary.getTotalErrors())
                                     + "\nTotal skipped: " + Integer.toString(testSuiteSummary.getTotalSkipped()));
                     System.out.println("TestRail: Summary message has been successfully sent");
+
+                    TestRailConnector connector = new TestRailConnector(
+                            preferences.getString(TestRailConstants.PREF_TESTRAIL_URL, "https://haimnguyen.testrail.io/"),
+                            preferences.getString(TestRailConstants.PREF_TESTRAIL_USERNAME, "haimnguyen@kms-technology.com"),
+                            preferences.getString(TestRailConstants.PREF_TESTRAIL_PASSWORD, "gYokVchRRCBXoIFAcVUJ")
+                    );
+
+                    connector.connect();
+                    String testRunId = parseId(testSuiteContext.getSourceId(), "R(\\d+)");
+//                    if (testRunId.equals("")) {
+//                        System.out.println("Create new run");
+//                        JSONObject jsonObject = connector.addRun("1");
+//                        testRunId = ((Long) jsonObject.get("id")).toString();
+//                    }
+                    System.out.println("Test Run id" + testRunId);
+
+
+                    testSuiteContext.getTestCaseContexts().forEach(tcContext -> {
+                        int status = 0;
+                        switch (tcContext.getTestCaseStatus()) {
+                            case "PASSED":
+                                status = 1;
+                                break;
+                            case "FAILED":
+                                status = 2;
+                                break;
+                            case "ERROR":
+                                status = 4;
+                                break;
+                            default:
+                        }
+                        System.out.println(tcContext.getId());
+                        System.out.println(tcContext.getSourceId());
+                        String testCaseId = parseId(tcContext.getId(), "C(\\d+)");
+
+                        if (!testCaseId.equals("")) {
+                            try {
+                                JSONObject result = connector.addResultForTestCase(testRunId, testCaseId, status);
+                                System.out.println(result);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                    });
                 }
-            } catch (ResourceException e) {
+            } catch (Exception e) {
                 e.printStackTrace(System.out);
             }
         });

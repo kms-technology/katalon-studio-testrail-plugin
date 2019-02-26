@@ -22,7 +22,7 @@
             extensionPointId="com.katalon.platform.api.extension.pluginPreferencePage"
             implementationClass="com.katalon.plugin.testrail.TestRailPluginPreferencePage">
       </point>
-   </extension>
+    </extension>
     <extension
             point="com.katalon.platform.extensions">
         <point
