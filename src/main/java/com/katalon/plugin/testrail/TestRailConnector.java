@@ -6,8 +6,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class TestRailConnector {
     private String url;
@@ -36,13 +35,13 @@ public class TestRailConnector {
         return password;
     }
 
-    public TestRailConnector(String url, String username, String password) {
-        this.url = url;
-        this.username = username;
+    public void setPassword(String password) {
         this.password = password;
     }
 
-    public void setPassword(String password) {
+    public TestRailConnector(String url, String username, String password) {
+        this.url = url;
+        this.username = username;
         this.password = password;
     }
 
@@ -62,18 +61,40 @@ public class TestRailConnector {
         return (JSONArray) this.apiClient.sendGet("get_tests/" + id);
     }
 
-    public void updateRun(String id, String array) throws IOException, APIException {
-        String postURL = "update_run" + id;
-        String body = "{\"include_all\": false,\"case_ids\": " + array + "}";
+    public List<Long> getTestCaseIdInRun(String id) throws IOException, APIException {
+        String requestURL = "get_tests/" + id;
+        JSONArray jsonArray = (JSONArray) this.apiClient.sendGet(requestURL);
 
-        this.apiClient.sendPost(postURL, body);
+        List<Long> listId = new ArrayList<>();
+
+        jsonArray.forEach((o) -> {
+            JSONObject jsonObject = (JSONObject) o;
+            listId.add((Long) jsonObject.get("case_id"));
+        });
+        System.out.println("List ID in TestRun " + listId);
+
+        return listId;
     }
 
     public JSONObject addResultForTestCase(String testRunId, String testCaseId, int status) throws IOException, APIException {
         Map data = new HashMap();
         data.put("status_id", status);
-        String requestURL = String.format("add_result_for_case/%s/%s", testRunId, testCaseId);
-        return (JSONObject) this.apiClient.sendPost(requestURL, data);
+        List<Long> listId = getTestCaseIdInRun(testRunId);
+        Long tcId = Long.parseLong(testCaseId);
+
+        if (!listId.contains(tcId)) {
+            // add test case to test run before sending result
+            listId.add(tcId);
+            String update_run_url = "update_run/" + testRunId;
+            Map body = new HashMap();
+            body.put("include_all", false);
+            body.put("case_ids", listId);
+            System.out.println(body);
+            this.apiClient.sendPost(update_run_url, body);
+        }
+
+        String add_result_url = String.format("add_result_for_case/%s/%s", testRunId, testCaseId);
+        return (JSONObject) this.apiClient.sendPost(add_result_url, data);
     }
 
     public JSONObject addRun(String projectId, String name) throws IOException, APIException {
