@@ -76,10 +76,10 @@ public class TestRailConnector {
         return (JSONObject) this.apiClient.sendPost(requestURL, data);
     }
 
-    public JSONObject addRun(String projectId) throws IOException, APIException {
+    public JSONObject addRun(String projectId, String name) throws IOException, APIException {
         Map data = new HashMap();
         data.put("suite_id", 1);
-        data.put("name", "New Run");
+        data.put("name", name);
         String requestURL = String.format("add_run/%s", projectId);
         return (JSONObject) this.apiClient.sendPost(requestURL, data);
 

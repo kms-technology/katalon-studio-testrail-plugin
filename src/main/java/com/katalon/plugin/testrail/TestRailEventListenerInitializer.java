@@ -14,15 +14,39 @@ import java.util.regex.Pattern;
 
 public class TestRailEventListenerInitializer implements EventListenerInitializer, TestRailComponent {
     private String parseId(String text, String patternString) {
-        //todo : split "/"
+        String[] splitText = text.split("/");
+        String name = splitText[splitText.length - 1];
+
         Pattern pattern = Pattern.compile(patternString);
-        Matcher matcher = pattern.matcher(text);
+        Matcher matcher = pattern.matcher(name);
         if (matcher.find()) {
             return matcher.group(1);
         } else {
             System.out.println("Not found ID in " + text);
             return "";
         }
+    }
+
+    private String getTestRun(String id, TestRailConnector connector) {
+        String[] splitText = id.split("/");
+        String name = splitText[splitText.length - 1];
+
+        Pattern pattern = Pattern.compile("R(\\d+)");
+        Matcher matcher = pattern.matcher(name);
+
+        if (matcher.find()) {
+            return matcher.group(1);
+        } else {
+            try {
+                System.out.println("Not found ID in " + id);
+                System.out.println("Create new test run");
+                JSONObject jsonObject = connector.addRun("1", name);
+                return ((Long) jsonObject.get("id")).toString();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return "";
     }
 
     @Override
@@ -59,13 +83,8 @@ public class TestRailEventListenerInitializer implements EventListenerInitialize
                     );
 
                     connector.connect();
-                    String testRunId = parseId(testSuiteContext.getSourceId(), "R(\\d+)");
-//                    if (testRunId.equals("")) {
-//                        System.out.println("Create new run");
-//                        JSONObject jsonObject = connector.addRun("1");
-//                        testRunId = ((Long) jsonObject.get("id")).toString();
-//                    }
-                    System.out.println("Test Run id" + testRunId);
+                    String testRunId = getTestRun(testSuiteContext.getSourceId(), connector);
+                    System.out.println("Update Test Run with id " + testRunId);
 
 
                     testSuiteContext.getTestCaseContexts().forEach(tcContext -> {
@@ -75,15 +94,13 @@ public class TestRailEventListenerInitializer implements EventListenerInitialize
                                 status = 1;
                                 break;
                             case "FAILED":
-                                status = 2;
+                                status = 5;
                                 break;
                             case "ERROR":
-                                status = 4;
+                                status = 5;
                                 break;
                             default:
                         }
-                        System.out.println(tcContext.getId());
-                        System.out.println(tcContext.getSourceId());
                         String testCaseId = parseId(tcContext.getId(), "C(\\d+)");
 
                         if (!testCaseId.equals("")) {
