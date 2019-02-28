@@ -43,18 +43,14 @@ public class TestRailConnector {
         this.url = url;
         this.username = username;
         this.password = password;
-    }
 
-
-    public JSONArray connect() throws IOException, APIException {
         this.apiClient = new APIClient(this.url);
         apiClient.setUser(this.username);
         apiClient.setPassword(this.password);
-        System.out.println(this.url);
-        System.out.println(this.username);
-        System.out.println(this.password);
+    }
 
-        return (JSONArray) this.apiClient.sendGet("get_projects");
+    public JSONObject getProject(String projectId) throws IOException, APIException {
+        return (JSONObject) this.apiClient.sendGet("get_project/"+ projectId);
     }
 
     public JSONArray getTest(String id) throws IOException, APIException {

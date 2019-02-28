@@ -34,8 +34,8 @@ public class TestRailTestCaseIntegrationView implements TestCaseIntegrationViewD
         Integration integration = testCase.getIntegration(TestRailConstants.INTEGRATION_ID);
         if(integration != null) {
             Map<String, String> integrationProps = integration.getProperties();
-           if(integrationProps.containsKey(TestRailConstants.TESTRAIL_TC_ID)){
-               txtId.setText(integrationProps.get(TestRailConstants.TESTRAIL_TC_ID));
+           if(integrationProps.containsKey(TestRailConstants.INTEGRATION_TESTCASE_ID)){
+               txtId.setText(integrationProps.get(TestRailConstants.INTEGRATION_TESTCASE_ID));
            }
         }
 

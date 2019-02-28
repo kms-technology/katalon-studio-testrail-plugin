@@ -20,7 +20,7 @@ public class TestRailTestCaseIntegration implements Integration {
     @Override
     public Map<String, String> getProperties() {
         HashMap<String, String> props = new HashMap<>();
-        props.put(TestRailConstants.TESTRAIL_TC_ID, testCaseId);
+        props.put(TestRailConstants.INTEGRATION_TESTCASE_ID, testCaseId);
         return props;
     }
 }

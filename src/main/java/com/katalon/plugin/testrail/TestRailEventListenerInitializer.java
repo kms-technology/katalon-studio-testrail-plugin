@@ -1,8 +1,6 @@
 package com.katalon.plugin.testrail;
 
-import com.katalon.platform.api.Application;
 import com.katalon.platform.api.controller.TestCaseController;
-import com.katalon.platform.api.exception.ResourceException;
 import com.katalon.platform.api.model.ProjectEntity;
 import com.katalon.platform.api.model.TestCaseEntity;
 import com.katalon.platform.api.service.ApplicationManager;
@@ -19,20 +17,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class TestRailEventListenerInitializer implements EventListenerInitializer, TestRailComponent {
-    private String parseId(String text, String patternString) {
-        String[] splitText = text.split("/");
-        String name = splitText[splitText.length - 1];
-
-        Pattern pattern = Pattern.compile(patternString);
-        Matcher matcher = pattern.matcher(name);
-        if (matcher.find()) {
-            return matcher.group(1);
-        } else {
-            System.out.println("Not found ID in " + text);
-            return "";
-        }
-    }
-
     private String getTestRun(String id, TestRailConnector connector) {
         String[] splitText = id.split("/");
         String name = splitText[splitText.length - 1];
@@ -88,7 +72,6 @@ public class TestRailEventListenerInitializer implements EventListenerInitialize
                             preferences.getString(TestRailConstants.PREF_TESTRAIL_PASSWORD, "gYokVchRRCBXoIFAcVUJ")
                     );
 
-                    connector.connect();
                     String testRunId = getTestRun(testSuiteContext.getSourceId(), connector);
                     System.out.println("Update Test Run with id " + testRunId);
 
@@ -99,35 +82,34 @@ public class TestRailEventListenerInitializer implements EventListenerInitialize
                         int status = 0;
                         switch (tcContext.getTestCaseStatus()) {
                             case "PASSED":
-                                status = 1;
+                                status = 1; //PASSED
                                 break;
                             case "FAILED":
-                                status = 5;
+                                status = 5; //FAILED
                                 break;
                             case "ERROR":
-                                status = 5;
+                                status = 5; //FAILED
                                 break;
                             default:
                         }
                         try {
                             TestCaseEntity testCaseEntity = controller.getTestCase(project, tcContext.getId());
                             String testRailTCId = testCaseEntity.getIntegration(TestRailConstants.INTEGRATION_ID)
-                                    .getProperties().get(TestRailConstants.TESTRAIL_TC_ID);
-                            System.out.println("TestRailId " + testRailTCId);
-                        } catch (ResourceException e) {
+                                    .getProperties().get(TestRailConstants.INTEGRATION_TESTCASE_ID);
+                            System.out.println("Upload TestCase "+ testRailTCId);
+                            connector.addResultForTestCase(testRunId, testRailTCId, status);
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
-                        String testCaseId = parseId(tcContext.getId(), "C(\\d+)");
-
-                        if (!testCaseId.equals("")) {
-                            try {
-                                JSONObject result = connector.addResultForTestCase(testRunId, testCaseId, status);
-                                System.out.println(result);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        }
-
+//                        String testCaseId = TestRailHelper.parseId(tcContext.getId(), "C(\\d+)");
+//
+//                        if (!testCaseId.equals("")) {
+//                            try {
+//                                JSONObject result = connector.addResultForTestCase(testRunId, testCaseId, status);
+//                            } catch (Exception e) {
+//                                e.printStackTrace();
+//                            }
+//                        }
                     });
                 }
             } catch (Exception e) {

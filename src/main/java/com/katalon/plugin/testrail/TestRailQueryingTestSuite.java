@@ -38,7 +38,6 @@ public class TestRailQueryingTestSuite implements DynamicQueryingTestSuiteDescri
         List<TestCaseEntity> resultTestCases = new ArrayList<>();
 
         try {
-            connector.connect();
             List<Long> listId = connector.getTestCaseIdInRun(testRunId.toString());
             allTestCases.forEach(testCaseEntity -> {
                 String id = testCaseEntity.getId();
