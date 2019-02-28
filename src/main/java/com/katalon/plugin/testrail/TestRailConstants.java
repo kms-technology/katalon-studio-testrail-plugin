@@ -12,4 +12,8 @@ public interface TestRailConstants {
     String PREF_TESTRAIL_PASSWORD = "testRail.password";
 
     String PREF_TESTRAIL_URL = "testRail.url";
+
+    String INTEGRATION_ID = "com.katalon.plugin.testrail.TestRailIntegration";
+
+    String TESTRAIL_TC_ID = "testRail.testcase.id";
 }

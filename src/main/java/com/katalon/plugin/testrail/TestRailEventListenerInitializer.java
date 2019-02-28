@@ -1,5 +1,11 @@
 package com.katalon.plugin.testrail;
 
+import com.katalon.platform.api.Application;
+import com.katalon.platform.api.controller.TestCaseController;
+import com.katalon.platform.api.exception.ResourceException;
+import com.katalon.platform.api.model.ProjectEntity;
+import com.katalon.platform.api.model.TestCaseEntity;
+import com.katalon.platform.api.service.ApplicationManager;
 import org.json.simple.JSONObject;
 import org.osgi.service.event.Event;
 
@@ -86,6 +92,8 @@ public class TestRailEventListenerInitializer implements EventListenerInitialize
                     String testRunId = getTestRun(testSuiteContext.getSourceId(), connector);
                     System.out.println("Update Test Run with id " + testRunId);
 
+                    ProjectEntity project = ApplicationManager.getInstance().getProjectManager().getCurrentProject();
+                    TestCaseController controller = ApplicationManager.getInstance().getControllerManager().getController(TestCaseController.class);
 
                     testSuiteContext.getTestCaseContexts().forEach(tcContext -> {
                         int status = 0;
@@ -100,6 +108,14 @@ public class TestRailEventListenerInitializer implements EventListenerInitialize
                                 status = 5;
                                 break;
                             default:
+                        }
+                        try {
+                            TestCaseEntity testCaseEntity = controller.getTestCase(project, tcContext.getId());
+                            String testRailTCId = testCaseEntity.getIntegration(TestRailConstants.INTEGRATION_ID)
+                                    .getProperties().get(TestRailConstants.TESTRAIL_TC_ID);
+                            System.out.println("TestRailId " + testRailTCId);
+                        } catch (ResourceException e) {
+                            e.printStackTrace();
                         }
                         String testCaseId = parseId(tcContext.getId(), "C(\\d+)");
 
