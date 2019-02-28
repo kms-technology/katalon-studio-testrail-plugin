@@ -31,9 +31,9 @@ public class TestRailQueryingTestSuite implements DynamicQueryingTestSuiteDescri
         Long testRunId = Long.parseLong(s);
         PluginPreference preferences = getPluginStore();
         TestRailConnector connector = new TestRailConnector(
-                preferences.getString(TestRailConstants.PREF_TESTRAIL_URL, "https://haimnguyen.testrail.io/"),
-                preferences.getString(TestRailConstants.PREF_TESTRAIL_USERNAME, "haimnguyen@kms-technology.com"),
-                preferences.getString(TestRailConstants.PREF_TESTRAIL_PASSWORD, "gYokVchRRCBXoIFAcVUJ")
+                preferences.getString(TestRailConstants.PREF_TESTRAIL_URL, ""),
+                preferences.getString(TestRailConstants.PREF_TESTRAIL_USERNAME, ""),
+                preferences.getString(TestRailConstants.PREF_TESTRAIL_PASSWORD, "")
         );
         List<TestCaseEntity> resultTestCases = new ArrayList<>();
 

@@ -50,7 +50,7 @@ public class TestRailConnector {
     }
 
     public JSONObject getProject(String projectId) throws IOException, APIException {
-        return (JSONObject) this.apiClient.sendGet("get_project/"+ projectId);
+        return (JSONObject) this.apiClient.sendGet("get_project/" + projectId);
     }
 
     public JSONArray getTest(String id) throws IOException, APIException {
@@ -93,15 +93,20 @@ public class TestRailConnector {
         return (JSONObject) this.apiClient.sendPost(add_result_url, data);
     }
 
+    public JSONObject updateRun(String testRunId, Map body) throws IOException, APIException {
+        String update_run_url = "update_run/" + testRunId;
+        return (JSONObject) this.apiClient.sendPost(update_run_url, body);
+    }
+
     public JSONArray addMultipleResultForCases(String testRunId, Map body) throws IOException, APIException {
         System.out.println("Sending multiple test cases");
         String add_result_url = String.format("add_results_for_cases/%s", testRunId);
         return (JSONArray) this.apiClient.sendPost(add_result_url, body);
     }
 
-    public JSONObject addRun(String projectId, String name) throws IOException, APIException {
+    public JSONObject addRun(String projectId, String suiteId, String name) throws IOException, APIException {
         Map data = new HashMap();
-        data.put("suite_id", 1);
+        data.put("suite_id", Long.parseLong(suiteId));
         data.put("name", name);
         String requestURL = String.format("add_run/%s", projectId);
         return (JSONObject) this.apiClient.sendPost(requestURL, data);
