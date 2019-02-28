@@ -93,6 +93,12 @@ public class TestRailConnector {
         return (JSONObject) this.apiClient.sendPost(add_result_url, data);
     }
 
+    public JSONArray addMultipleResultForCases(String testRunId, Map body) throws IOException, APIException {
+        System.out.println("Sending multiple test cases");
+        String add_result_url = String.format("add_results_for_cases/%s", testRunId);
+        return (JSONArray) this.apiClient.sendPost(add_result_url, body);
+    }
+
     public JSONObject addRun(String projectId, String name) throws IOException, APIException {
         Map data = new HashMap();
         data.put("suite_id", 1);

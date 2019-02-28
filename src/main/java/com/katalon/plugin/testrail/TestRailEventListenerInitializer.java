@@ -1,6 +1,7 @@
 package com.katalon.plugin.testrail;
 
 import com.katalon.platform.api.controller.TestCaseController;
+import com.katalon.platform.api.model.Integration;
 import com.katalon.platform.api.model.ProjectEntity;
 import com.katalon.platform.api.model.TestCaseEntity;
 import com.katalon.platform.api.service.ApplicationManager;
@@ -13,8 +14,12 @@ import com.katalon.platform.api.execution.TestSuiteExecutionContext;
 import com.katalon.platform.api.extension.EventListenerInitializer;
 import com.katalon.platform.api.preference.PluginPreference;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class TestRailEventListenerInitializer implements EventListenerInitializer, TestRailComponent {
     private String getTestRun(String id, TestRailConnector connector) {
@@ -37,6 +42,24 @@ public class TestRailEventListenerInitializer implements EventListenerInitialize
             }
         }
         return "";
+    }
+
+    private String mapToStatusTestRail(String ksStatus) {
+        String status;
+        switch (ksStatus) {
+            case "PASSED":
+                status = "1"; //PASSED
+                break;
+            case "FAILED":
+                status = "5"; //FAILED
+                break;
+            case "ERROR":
+                status = "5"; //FAILED
+                break;
+            default:
+                status = "0";
+        }
+        return status;
     }
 
     @Override
@@ -78,39 +101,29 @@ public class TestRailEventListenerInitializer implements EventListenerInitialize
                     ProjectEntity project = ApplicationManager.getInstance().getProjectManager().getCurrentProject();
                     TestCaseController controller = ApplicationManager.getInstance().getControllerManager().getController(TestCaseController.class);
 
-                    testSuiteContext.getTestCaseContexts().forEach(tcContext -> {
-                        int status = 0;
-                        switch (tcContext.getTestCaseStatus()) {
-                            case "PASSED":
-                                status = 1; //PASSED
-                                break;
-                            case "FAILED":
-                                status = 5; //FAILED
-                                break;
-                            case "ERROR":
-                                status = 5; //FAILED
-                                break;
-                            default:
-                        }
+                    List<Map<String, String>> data = testSuiteContext.getTestCaseContexts().stream().map(testCaseExecutionContext -> {
+                        String status = mapToStatusTestRail(testCaseExecutionContext.getTestCaseStatus());
                         try {
-                            TestCaseEntity testCaseEntity = controller.getTestCase(project, tcContext.getId());
-                            String testRailTCId = testCaseEntity.getIntegration(TestRailConstants.INTEGRATION_ID)
-                                    .getProperties().get(TestRailConstants.INTEGRATION_TESTCASE_ID);
-                            System.out.println("Upload TestCase "+ testRailTCId);
-                            connector.addResultForTestCase(testRunId, testRailTCId, status);
+                            TestCaseEntity testCaseEntity = controller.getTestCase(project, testCaseExecutionContext.getId());
+                            Integration integration = testCaseEntity.getIntegration(TestRailConstants.INTEGRATION_ID);
+                            if (integration == null) {
+                                return null;
+                            }
+                            String testRailTCId = integration.getProperties().get(TestRailConstants.INTEGRATION_TESTCASE_ID);
+                            Map<String, String> resultMap = new HashMap<>();
+                            resultMap.put("case_id", testRailTCId);
+                            resultMap.put("status_id", status);
+                            return resultMap;
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
-//                        String testCaseId = TestRailHelper.parseId(tcContext.getId(), "C(\\d+)");
-//
-//                        if (!testCaseId.equals("")) {
-//                            try {
-//                                JSONObject result = connector.addResultForTestCase(testRunId, testCaseId, status);
-//                            } catch (Exception e) {
-//                                e.printStackTrace();
-//                            }
-//                        }
-                    });
+                        return null;
+                    }).filter(map -> map != null).collect(Collectors.toList());
+                    System.out.println("#test case: " + data.size());
+
+                    Map<String, List> requestBody = new HashMap<>();
+                    requestBody.put("results", data);
+                    connector.addMultipleResultForCases(testRunId, requestBody);
                 }
             } catch (Exception e) {
                 e.printStackTrace(System.out);
