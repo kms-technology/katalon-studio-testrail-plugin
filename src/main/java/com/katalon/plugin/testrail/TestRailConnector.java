@@ -53,7 +53,7 @@ public class TestRailConnector {
         System.out.println("Send post url: " + url + " data: " + data);
         Object response = this.apiClient.sendPost(url, data);
         System.out.println("Receive: " + response.toString());
-        return this.apiClient.sendPost(url, data);
+        return response;
     }
 
     private Object sendGet(String url) throws IOException, APIException {
@@ -81,7 +81,6 @@ public class TestRailConnector {
             JSONObject jsonObject = (JSONObject) o;
             listId.add((Long) jsonObject.get("case_id"));
         });
-        System.out.println("List ID in TestRun " + id + " : " + listId);
         return listId;
     }
 
