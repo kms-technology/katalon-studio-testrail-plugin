@@ -3,15 +3,13 @@ package com.katalon.plugin.testrail;
 import com.katalon.platform.api.controller.FolderController;
 import com.katalon.platform.api.exception.ResourceException;
 import com.katalon.platform.api.extension.DynamicQueryingTestSuiteDescription;
-import com.katalon.platform.api.model.FolderEntity;
-import com.katalon.platform.api.model.ProjectEntity;
-import com.katalon.platform.api.model.TestCaseEntity;
-import com.katalon.platform.api.model.TestSuiteEntity;
+import com.katalon.platform.api.model.*;
 import com.katalon.platform.api.preference.PluginPreference;
 import com.katalon.platform.api.service.ApplicationManager;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class TestRailQueryingTestSuite implements DynamicQueryingTestSuiteDescription, TestRailComponent {
     private FolderController folderController = ApplicationManager.getInstance()
@@ -38,12 +36,19 @@ public class TestRailQueryingTestSuite implements DynamicQueryingTestSuiteDescri
         List<TestCaseEntity> resultTestCases = new ArrayList<>();
 
         try {
-            List<Long> listId = connector.getTestCaseIdInRun(testRunId.toString());
+            List<Long> testCaseIdInRun = connector.getTestCaseIdInRun(s);
             allTestCases.forEach(testCaseEntity -> {
-                String id = testCaseEntity.getId();
-                String testCaseId = TestRailHelper.parseId(id, "C(\\d+)");
-                if (!testCaseId.equals("") && listId.contains(Long.parseLong(testCaseId))){
-                    resultTestCases.add(testCaseEntity);
+                Integration integration = testCaseEntity.getIntegration(TestRailConstants.INTEGRATION_ID);
+                if (integration == null) {
+                    return;
+                }
+                Map<String, String> props = integration.getProperties();
+                if (props.containsKey(TestRailConstants.INTEGRATION_TESTCASE_ID)) {
+                    String testCaseId = props.get(TestRailConstants.INTEGRATION_TESTCASE_ID);
+                    if (testCaseIdInRun.contains(Long.parseLong(testCaseId))) {
+                        System.out.println("Found testCaseId " + testCaseId);
+                        resultTestCases.add(testCaseEntity);
+                    }
                 }
             });
         } catch (Exception e) {
