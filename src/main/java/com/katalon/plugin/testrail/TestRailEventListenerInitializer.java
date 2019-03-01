@@ -23,6 +23,9 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class TestRailEventListenerInitializer implements EventListenerInitializer, TestRailComponent {
+    private Pattern updatePattern = Pattern.compile("^R(\\d+)");
+    private Pattern createPattern = Pattern.compile("^S(\\d+)");
+
     /*
      * Return id of Test Run in TestRail
      *
@@ -34,9 +37,7 @@ public class TestRailEventListenerInitializer implements EventListenerInitialize
         String[] splitText = id.split("/");
         String name = splitText[splitText.length - 1];
 
-        Pattern updatePattern = Pattern.compile("^R(\\d+)");
         Matcher updateMatcher = updatePattern.matcher(name);
-        Pattern createPattern = Pattern.compile("^S(\\d+)");
         Matcher createMatcher = createPattern.matcher(name);
 
         if (updateMatcher.lookingAt()) {
@@ -129,7 +130,6 @@ public class TestRailEventListenerInitializer implements EventListenerInitialize
                         }
                         return null;
                     }).filter(map -> map != null).collect(Collectors.toList());
-                    System.out.println("#test case: " + data.size());
                     //Check if test case is in test run
                     //If not, add it to test run
                     String testRunId = getTestRun(testSuiteContext.getSourceId(), projectId, connector, updateIds);
