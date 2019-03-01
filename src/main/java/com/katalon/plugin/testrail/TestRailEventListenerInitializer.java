@@ -30,7 +30,7 @@ public class TestRailEventListenerInitializer implements EventListenerInitialize
      * @param connector
      * @return
      */
-    private String getTestRun(String id, String projectId, TestRailConnector connector) {
+    private String getTestRun(String id, String projectId, TestRailConnector connector, List<Long> testCaseIds) {
         String[] splitText = id.split("/");
         String name = splitText[splitText.length - 1];
 
@@ -45,7 +45,7 @@ public class TestRailEventListenerInitializer implements EventListenerInitialize
             String suiteId = createMatcher.group(1);
             try {
                 System.out.println("Create new test run " + name);
-                JSONObject jsonObject = connector.addRun(projectId, suiteId, name);
+                JSONObject jsonObject = connector.addRun(projectId, suiteId, name, testCaseIds);
                 return ((Long) jsonObject.get("id")).toString();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -105,11 +105,6 @@ public class TestRailEventListenerInitializer implements EventListenerInitialize
                             preferences.getString(TestRailConstants.PREF_TESTRAIL_PASSWORD, "")
                     );
                     String projectId = preferences.getString(TestRailConstants.PREF_TESTRAIL_PROJECT, "");
-                    String testRunId = getTestRun(testSuiteContext.getSourceId(), projectId, connector);
-                    if (testRunId.equals("")) {
-                        return;
-                    }
-                    System.out.println("Update Test Run with id " + testRunId);
 
                     ProjectEntity project = ApplicationManager.getInstance().getProjectManager().getCurrentProject();
                     TestCaseController controller = ApplicationManager.getInstance().getControllerManager().getController(TestCaseController.class);
@@ -137,8 +132,12 @@ public class TestRailEventListenerInitializer implements EventListenerInitialize
                     System.out.println("#test case: " + data.size());
                     //Check if test case is in test run
                     //If not, add it to test run
+                    String testRunId = getTestRun(testSuiteContext.getSourceId(), projectId, connector, updateIds);
+                    if (testRunId.equals("")) {
+                        return;
+                    }
                     List<Long> testCaseIdInRun = connector.getTestCaseIdInRun(testRunId);
-                    if (!testCaseIdInRun.containsAll(updateIds)){
+                    if (!testCaseIdInRun.containsAll(updateIds)) {
                         testCaseIdInRun.addAll(updateIds);
                         Map<String, Object> body = new HashMap<>();
                         body.put("include_all", false);

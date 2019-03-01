@@ -49,17 +49,31 @@ public class TestRailConnector {
         apiClient.setPassword(this.password);
     }
 
+    private Object sendPost(String url, Map data) throws IOException, APIException {
+        System.out.println("Send post url: " + url + " data: " + data);
+        Object response = this.apiClient.sendPost(url, data);
+        System.out.println("Receive: " + response.toString());
+        return this.apiClient.sendPost(url, data);
+    }
+
+    private Object sendGet(String url) throws IOException, APIException {
+        System.out.println("Send get url " + url);
+        Object response = this.apiClient.sendGet(url);
+        System.out.println("Receive: " + response.toString());
+        return response;
+    }
+
     public JSONObject getProject(String projectId) throws IOException, APIException {
-        return (JSONObject) this.apiClient.sendGet("get_project/" + projectId);
+        return (JSONObject) sendGet("get_project/" + projectId);
     }
 
     public JSONArray getTest(String id) throws IOException, APIException {
-        return (JSONArray) this.apiClient.sendGet("get_tests/" + id);
+        return (JSONArray) sendGet("get_tests/" + id);
     }
 
     public List<Long> getTestCaseIdInRun(String id) throws IOException, APIException {
         String requestURL = "get_tests/" + id;
-        JSONArray jsonArray = (JSONArray) this.apiClient.sendGet(requestURL);
+        JSONArray jsonArray = (JSONArray) sendGet(requestURL);
 
         List<Long> listId = new ArrayList<>();
 
@@ -67,8 +81,7 @@ public class TestRailConnector {
             JSONObject jsonObject = (JSONObject) o;
             listId.add((Long) jsonObject.get("case_id"));
         });
-        System.out.println("List ID in TestRun " + listId);
-
+        System.out.println("List ID in TestRun " + id + " : " + listId);
         return listId;
     }
 
@@ -86,30 +99,31 @@ public class TestRailConnector {
             body.put("include_all", false);
             body.put("case_ids", listId);
             System.out.println(body);
-            this.apiClient.sendPost(update_run_url, body);
+            sendPost(update_run_url, body);
         }
 
         String add_result_url = String.format("add_result_for_case/%s/%s", testRunId, testCaseId);
-        return (JSONObject) this.apiClient.sendPost(add_result_url, data);
+        return (JSONObject) sendPost(add_result_url, data);
     }
 
     public JSONObject updateRun(String testRunId, Map body) throws IOException, APIException {
         String update_run_url = "update_run/" + testRunId;
-        return (JSONObject) this.apiClient.sendPost(update_run_url, body);
+        return (JSONObject) sendPost(update_run_url, body);
     }
 
     public JSONArray addMultipleResultForCases(String testRunId, Map body) throws IOException, APIException {
-        System.out.println("Sending multiple test cases");
         String add_result_url = String.format("add_results_for_cases/%s", testRunId);
-        return (JSONArray) this.apiClient.sendPost(add_result_url, body);
+        return (JSONArray) sendPost(add_result_url, body);
     }
 
-    public JSONObject addRun(String projectId, String suiteId, String name) throws IOException, APIException {
+    public JSONObject addRun(String projectId, String suiteId, String name, List<Long> testCaseIds) throws IOException, APIException {
         Map data = new HashMap();
         data.put("suite_id", Long.parseLong(suiteId));
         data.put("name", name);
+        data.put("include_all", false);
+        data.put("case_ids", testCaseIds);
         String requestURL = String.format("add_run/%s", projectId);
-        return (JSONObject) this.apiClient.sendPost(requestURL, data);
+        return (JSONObject) sendPost(requestURL, data);
 
     }
 
