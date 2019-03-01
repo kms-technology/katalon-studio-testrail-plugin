@@ -65,7 +65,7 @@ public class TestRailPreferencePage extends PreferencePage implements TestRailCo
         txtUsername = createTextbox();
 
         createLabel("Password");
-        txtPassword = createTextbox();
+        txtPassword = createPasswordTextbox();
 
         createLabel("Project");
         txtProject = createTextbox();
@@ -96,6 +96,14 @@ public class TestRailPreferencePage extends PreferencePage implements TestRailCo
 
     private Text createTextbox() {
         Text text = new Text(grpAuthentication, SWT.BORDER);
+        GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, false);
+        gridData.widthHint = 200;
+        text.setLayoutData(gridData);
+        return text;
+    }
+
+    private Text createPasswordTextbox(){
+        Text text = new Text(grpAuthentication, SWT.PASSWORD | SWT.BORDER);
         GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, false);
         gridData.widthHint = 200;
         text.setLayoutData(gridData);
