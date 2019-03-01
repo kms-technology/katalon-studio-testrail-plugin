@@ -26,7 +26,7 @@ public class TestRailQueryingTestSuite implements DynamicQueryingTestSuiteDescri
         FolderEntity testCaseRoot = folderController.getFolder(project, "Test Cases");
         List<TestCaseEntity> allTestCases = getAllTestCases(project, testCaseRoot);
 
-        Long testRunId = Long.parseLong(s);
+        String testRunId = TestRailHelper.parseId(s, "^R(\\d+)");
         PluginPreference preferences = getPluginStore();
         TestRailConnector connector = new TestRailConnector(
                 preferences.getString(TestRailConstants.PREF_TESTRAIL_URL, ""),
@@ -34,9 +34,10 @@ public class TestRailQueryingTestSuite implements DynamicQueryingTestSuiteDescri
                 preferences.getString(TestRailConstants.PREF_TESTRAIL_PASSWORD, "")
         );
         List<TestCaseEntity> resultTestCases = new ArrayList<>();
+        if (testRunId.equals("")) return resultTestCases;
 
         try {
-            List<Long> testCaseIdInRun = connector.getTestCaseIdInRun(s);
+            List<Long> testCaseIdInRun = connector.getTestCaseIdInRun(testRunId);
             allTestCases.forEach(testCaseEntity -> {
                 Integration integration = testCaseEntity.getIntegration(TestRailConstants.INTEGRATION_ID);
                 if (integration == null) {
