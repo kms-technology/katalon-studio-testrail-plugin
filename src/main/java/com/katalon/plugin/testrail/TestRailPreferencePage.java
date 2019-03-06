@@ -178,7 +178,7 @@ public class TestRailPreferencePage extends PreferencePage implements TestRailCo
     }
 
     @Override
-    protected void performApply() {
+    public boolean performOk() {
         try {
             PluginPreference pluginStore = getPluginStore();
 
@@ -190,9 +190,10 @@ public class TestRailPreferencePage extends PreferencePage implements TestRailCo
 
             pluginStore.save();
 
-            super.performApply();
+            return true;
         } catch (ResourceException e) {
             MessageDialog.openWarning(getShell(), "Warning", "Unable to update TestRail Integration Settings.");
+            return false;
         }
     }
 
