@@ -22,13 +22,21 @@
             extensionPointId="com.katalon.platform.api.extension.pluginPreferencePage"
             implementationClass="com.katalon.plugin.testrail.TestRailPluginPreferencePage">
       </point>
-   </extension>
+    </extension>
     <extension
             point="com.katalon.platform.extensions">
         <point
                 id="com.katalon.plugin.testrail.TestRailTestCaseIntegrationPage"
                 extensionPointId="com.katalon.platform.api.extension.testCaseIntegrationViewDescription"
                 implementationClass="com.katalon.plugin.testrail.TestRailTestCaseIntegrationViewDescription">
+        </point>
+    </extension>
+    <extension
+            point="com.katalon.platform.extensions">
+        <point
+                id="com.katalon.plugin.dynamic_execution.TestRailFilteringTestSuiteImpl"
+                extensionPointId="com.katalon.platform.api.extension.dynamicQueryingTestSuiteDescription"
+                implementationClass="com.katalon.plugin.testrail.TestRailQueryingTestSuite">
         </point>
     </extension>
 </plugin>

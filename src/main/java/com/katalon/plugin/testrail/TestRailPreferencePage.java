@@ -1,6 +1,5 @@
 package com.katalon.plugin.testrail;
 
-import com.gurock.testrail.APIClient;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.swt.SWT;
@@ -20,7 +19,6 @@ import com.katalon.platform.api.exception.ResourceException;
 import com.katalon.platform.api.preference.PluginPreference;
 import com.katalon.platform.api.service.ApplicationManager;
 import com.katalon.platform.api.ui.UISynchronizeService;
-import org.json.simple.JSONArray;
 
 public class TestRailPreferencePage extends PreferencePage implements TestRailComponent {
 
@@ -33,6 +31,8 @@ public class TestRailPreferencePage extends PreferencePage implements TestRailCo
     private Text txtPassword;
 
     private Text txtUrl;
+
+    private Text txtProject;
 
     private Composite container;
 
@@ -65,14 +65,22 @@ public class TestRailPreferencePage extends PreferencePage implements TestRailCo
         txtUsername = createTextbox();
 
         createLabel("Password");
-        txtPassword = createTextbox();
+        txtPassword = createPasswordTextbox();
+
+        createLabel("Project");
+        txtProject = createTextbox();
 
         btnTestConnection = new Button(grpAuthentication, SWT.PUSH);
         btnTestConnection.setText("Test Connection");
         btnTestConnection.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                testTestRailConnection(txtUsername.getText(), txtPassword.getText(), txtUrl.getText());
+                testTestRailConnection(
+                        txtUsername.getText(),
+                        txtPassword.getText(),
+                        txtUrl.getText(),
+                        txtProject.getText()
+                );
             }
         });
 
@@ -94,6 +102,14 @@ public class TestRailPreferencePage extends PreferencePage implements TestRailCo
         return text;
     }
 
+    private Text createPasswordTextbox(){
+        Text text = new Text(grpAuthentication, SWT.PASSWORD | SWT.BORDER);
+        GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, false);
+        gridData.widthHint = 200;
+        text.setLayoutData(gridData);
+        return text;
+    }
+
     private void createLabel(String text) {
         Label label = new Label(grpAuthentication, SWT.NONE);
         label.setText(text);
@@ -101,17 +117,15 @@ public class TestRailPreferencePage extends PreferencePage implements TestRailCo
         label.setLayoutData(gridData);
     }
 
-    private void testTestRailConnection(String username, String password, String url) {
+    private void testTestRailConnection(String username, String password, String url, String project) {
         btnTestConnection.setEnabled(false);
         lblConnectionStatus.setForeground(lblConnectionStatus.getDisplay().getSystemColor(SWT.COLOR_BLACK));
         lblConnectionStatus.setText("Connecting...");
         thread = new Thread(() -> {
             try {
                 // test connection here
-                APIClient client = new APIClient(url);
-                client.setUser(username);
-                client.setPassword(password);
-                JSONArray projects = (JSONArray) client.sendGet("get_projects");
+                TestRailConnector connector = new TestRailConnector(url, username, password);
+                connector.getProject(project);
 
                 syncExec(() -> {
                     lblConnectionStatus
@@ -164,7 +178,7 @@ public class TestRailPreferencePage extends PreferencePage implements TestRailCo
     }
 
     @Override
-    protected void performApply() {
+    public boolean performOk() {
         try {
             PluginPreference pluginStore = getPluginStore();
 
@@ -172,12 +186,14 @@ public class TestRailPreferencePage extends PreferencePage implements TestRailCo
             pluginStore.setString(TestRailConstants.PREF_TESTRAIL_USERNAME, txtUsername.getText());
             pluginStore.setString(TestRailConstants.PREF_TESTRAIL_PASSWORD, txtPassword.getText());
             pluginStore.setString(TestRailConstants.PREF_TESTRAIL_URL, txtUrl.getText());
+            pluginStore.setString(TestRailConstants.PREF_TESTRAIL_PROJECT, txtProject.getText());
 
             pluginStore.save();
 
-            super.performApply();
+            return true;
         } catch (ResourceException e) {
             MessageDialog.openWarning(getShell(), "Warning", "Unable to update TestRail Integration Settings.");
+            return false;
         }
     }
 
@@ -191,6 +207,7 @@ public class TestRailPreferencePage extends PreferencePage implements TestRailCo
             txtUsername.setText(pluginStore.getString(TestRailConstants.PREF_TESTRAIL_USERNAME, ""));
             txtPassword.setText(pluginStore.getString(TestRailConstants.PREF_TESTRAIL_PASSWORD, ""));
             txtUrl.setText(pluginStore.getString(TestRailConstants.PREF_TESTRAIL_URL, ""));
+            txtProject.setText(pluginStore.getString(TestRailConstants.PREF_TESTRAIL_PROJECT, ""));
 
             container.layout(true, true);
         } catch (ResourceException e) {
