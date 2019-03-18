@@ -179,6 +179,10 @@ public class TestRailPreferencePage extends PreferencePage implements TestRailCo
 
     @Override
     public boolean performOk() {
+        if (!isControlCreated()) {
+            return true;
+        }
+
         try {
             PluginPreference pluginStore = getPluginStore();
 
