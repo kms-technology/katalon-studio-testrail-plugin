@@ -84,7 +84,7 @@ public class TestRailPreferencePage extends PreferencePage implements TestRailCo
             }
         });
 
-        lblConnectionStatus = new Label(grpAuthentication, SWT.NONE);
+        lblConnectionStatus = new Label(grpAuthentication, SWT.WRAP);
         lblConnectionStatus.setText("");
         lblConnectionStatus.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 1, 1));
 
@@ -119,8 +119,9 @@ public class TestRailPreferencePage extends PreferencePage implements TestRailCo
 
     private void testTestRailConnection(String username, String password, String url, String project) {
         btnTestConnection.setEnabled(false);
-        lblConnectionStatus.setForeground(lblConnectionStatus.getDisplay().getSystemColor(SWT.COLOR_BLACK));
+        lblConnectionStatus.setForeground(lblConnectionStatus.getDisplay().getSystemColor(SWT.COLOR_DARK_YELLOW));
         lblConnectionStatus.setText("Connecting...");
+        lblConnectionStatus.requestLayout();
         thread = new Thread(() -> {
             try {
                 // test connection here
@@ -131,6 +132,7 @@ public class TestRailPreferencePage extends PreferencePage implements TestRailCo
                     lblConnectionStatus
                             .setForeground(lblConnectionStatus.getDisplay().getSystemColor(SWT.COLOR_DARK_GREEN));
                     lblConnectionStatus.setText("Succeeded!");
+                    lblConnectionStatus.requestLayout();
                 });
             } catch (Exception e) {
                 System.err.println("Cannot connect to TestRail.");
@@ -139,6 +141,7 @@ public class TestRailPreferencePage extends PreferencePage implements TestRailCo
                     lblConnectionStatus
                             .setForeground(lblConnectionStatus.getDisplay().getSystemColor(SWT.COLOR_DARK_RED));
                     lblConnectionStatus.setText("Failed: " + e.getMessage());
+                    lblConnectionStatus.requestLayout();
                 });
             } finally {
                 syncExec(() -> btnTestConnection.setEnabled(true));
