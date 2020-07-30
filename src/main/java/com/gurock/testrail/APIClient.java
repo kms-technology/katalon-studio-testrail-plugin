@@ -36,10 +36,8 @@ import org.apache.http.entity.ByteArrayEntity;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
-import com.katalon.platform.api.network.ApplicationProxyPreference;
-import com.katalon.platform.api.network.ApplicationProxyPreference.ProxyInformation;
-import com.katalon.platform.api.network.NetworkPreference.SSLCertificateOption;
-import com.katalon.platform.api.util.HttpUtil;
+import com.katalon.platform.api.controller.RequestController;
+import com.katalon.platform.api.service.ApplicationManager;
 
 public class APIClient {
     private String m_user;
@@ -135,10 +133,9 @@ public class APIClient {
     }
 
     private Object sendRequest(String method, String uri, Object data)
-            throws MalformedURLException, IOException, APIException, URISyntaxException, KeyManagementException,
-            GeneralSecurityException, MethodNotSupportedException {
+            throws IOException, KeyManagementException, URISyntaxException, GeneralSecurityException, APIException {
         String absoluteUri = this.m_url + uri;
-        
+
         boolean isMethodHasBody = method == "POST" || method == "PUT" || method == "PATCH";
         HttpUriRequest request = RequestBuilder.create(method).setUri(absoluteUri).build();
 
@@ -158,8 +155,11 @@ public class APIClient {
         String basicAuth = getAuthorization(this.m_user, this.m_password);
         request.setHeader("Authorization", "Basic " + basicAuth);
 
-        ProxyInformation proxyInfo = ApplicationProxyPreference.getSystemProxyInformation();
-        HttpResponse response = HttpUtil.sendRequest(request, proxyInfo);
+        RequestController requestController = ApplicationManager.getInstance()
+                .getControllerManager()
+                .getController(RequestController.class);
+
+        HttpResponse response = requestController.sendWithProxy(request);
 
         StatusLine statusLine = response.getStatusLine();
         int statusCode = statusLine.getStatusCode();
@@ -169,8 +169,7 @@ public class APIClient {
             istream = response.getEntity().getContent();
         } else {
             String reason = statusLine.getReasonPhrase();
-            throw new APIException(
-                    MessageFormat.format("TestRail API return HTTP code {0} ({1})", statusCode, reason));
+            throw new APIException(MessageFormat.format("TestRail API return HTTP code {0} ({1})", statusCode, reason));
         }
 
         String textContent = "";
