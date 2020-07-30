@@ -17,17 +17,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.security.GeneralSecurityException;
-import java.security.KeyManagementException;
 import java.text.MessageFormat;
 import java.util.Base64;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
-import org.apache.http.MethodNotSupportedException;
 import org.apache.http.StatusLine;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -96,12 +93,11 @@ public class APIClient {
      * API method). In most cases, this returns a JSONObject instance which
      * is basically the same as java.util.Map.
      * 
-     * @throws GeneralSecurityException
-     * @throws MethodNotSupportedException
-     * @throws KeyManagementException
+     * @throws APIException
+     * @throws URISyntaxException
+     * @throws IOException
      */
-    public Object sendGet(String uri) throws MalformedURLException, IOException, APIException, URISyntaxException,
-            KeyManagementException, MethodNotSupportedException, GeneralSecurityException {
+    public Object sendGet(String uri) throws IOException, URISyntaxException, GeneralSecurityException, APIException {
         return this.sendRequest("GET", uri, null);
     }
 
@@ -123,17 +119,17 @@ public class APIClient {
      * API method). In most cases, this returns a JSONObject instance which
      * is basically the same as java.util.Map.
      * 
-     * @throws GeneralSecurityException
-     * @throws KeyManagementException
-     * @throws MethodNotSupportedException
+     * @throws APIException
+     * @throws URISyntaxException
+     * @throws IOException
      */
-    public Object sendPost(String uri, Object data) throws MalformedURLException, IOException, APIException,
-            URISyntaxException, KeyManagementException, GeneralSecurityException, MethodNotSupportedException {
+    public Object sendPost(String uri, Object data)
+            throws IOException, URISyntaxException, GeneralSecurityException, APIException {
         return this.sendRequest("POST", uri, data);
     }
 
     private Object sendRequest(String method, String uri, Object data)
-            throws IOException, KeyManagementException, URISyntaxException, GeneralSecurityException, APIException {
+            throws IOException, URISyntaxException, GeneralSecurityException, APIException {
         String absoluteUri = this.m_url + uri;
 
         boolean isMethodHasBody = method == "POST" || method == "PUT" || method == "PATCH";

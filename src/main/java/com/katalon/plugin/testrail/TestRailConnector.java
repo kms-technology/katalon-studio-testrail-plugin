@@ -1,17 +1,18 @@
 package com.katalon.plugin.testrail;
 
-import com.gurock.testrail.APIClient;
-import com.gurock.testrail.APIException;
-
-import org.apache.http.MethodNotSupportedException;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.GeneralSecurityException;
-import java.security.KeyManagementException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+
+import com.gurock.testrail.APIClient;
+import com.gurock.testrail.APIException;
 
 public class TestRailConnector {
     private String url;
@@ -54,34 +55,32 @@ public class TestRailConnector {
         apiClient.setPassword(this.password);
     }
 
-    private Object sendPost(String url, Map<String, Object> data) throws IOException, APIException, URISyntaxException,
-            KeyManagementException, MethodNotSupportedException, GeneralSecurityException {
+    private Object sendPost(String url, Map<String, Object> data)
+            throws IOException, URISyntaxException, GeneralSecurityException, APIException {
         System.out.println("Send post url: " + url + " data: " + data);
         Object response = this.apiClient.sendPost(url, data);
         System.out.println("Receive: " + response.toString());
         return response;
     }
 
-    private Object sendGet(String url) throws IOException, APIException, URISyntaxException, KeyManagementException,
-            MethodNotSupportedException, GeneralSecurityException {
+    private Object sendGet(String url) throws IOException, URISyntaxException, GeneralSecurityException, APIException {
         System.out.println("Send get url " + url);
         Object response = this.apiClient.sendGet(url);
         System.out.println("Receive: " + response.toString());
         return response;
     }
 
-    public JSONObject getProject(String projectId) throws IOException, APIException, URISyntaxException,
-            KeyManagementException, MethodNotSupportedException, GeneralSecurityException {
+    public JSONObject getProject(String projectId)
+            throws IOException, URISyntaxException, GeneralSecurityException, APIException {
         return (JSONObject) sendGet("get_project/" + projectId);
     }
 
-    public JSONArray getTest(String id) throws IOException, APIException, URISyntaxException, KeyManagementException,
-            MethodNotSupportedException, GeneralSecurityException {
+    public JSONArray getTest(String id) throws IOException, URISyntaxException, GeneralSecurityException, APIException {
         return (JSONArray) sendGet("get_tests/" + id);
     }
 
-    public List<Long> getTestCaseIdInRun(String id) throws IOException, APIException, URISyntaxException,
-            KeyManagementException, MethodNotSupportedException, GeneralSecurityException {
+    public List<Long> getTestCaseIdInRun(String id)
+            throws IOException, URISyntaxException, GeneralSecurityException, APIException {
         String requestURL = "get_tests/" + id;
         JSONArray jsonArray = (JSONArray) sendGet(requestURL);
 
@@ -95,8 +94,7 @@ public class TestRailConnector {
     }
 
     public JSONObject addResultForTestCase(String testRunId, String testCaseId, int status)
-            throws IOException, APIException, URISyntaxException, KeyManagementException, MethodNotSupportedException,
-            GeneralSecurityException {
+            throws IOException, URISyntaxException, GeneralSecurityException, APIException {
         Map<String, Object> data = new HashMap<String, Object>();
         data.put("status_id", status);
         List<Long> listId = getTestCaseIdInRun(testRunId);
@@ -117,21 +115,20 @@ public class TestRailConnector {
         return (JSONObject) sendPost(add_result_url, data);
     }
 
-    public JSONObject updateRun(String testRunId, Map<String, Object> body) throws IOException, APIException, URISyntaxException,
-            KeyManagementException, MethodNotSupportedException, GeneralSecurityException {
+    public JSONObject updateRun(String testRunId, Map<String, Object> body)
+            throws IOException, URISyntaxException, GeneralSecurityException, APIException {
         String update_run_url = "update_run/" + testRunId;
         return (JSONObject) sendPost(update_run_url, body);
     }
 
-    public JSONArray addMultipleResultForCases(String testRunId, Map<String, Object> body) throws IOException, APIException,
-            URISyntaxException, KeyManagementException, MethodNotSupportedException, GeneralSecurityException {
+    public JSONArray addMultipleResultForCases(String testRunId, Map<String, Object> body)
+            throws IOException, URISyntaxException, GeneralSecurityException, APIException {
         String add_result_url = String.format("add_results_for_cases/%s", testRunId);
         return (JSONArray) sendPost(add_result_url, body);
     }
 
     public JSONObject addRun(String projectId, String suiteId, String name, List<Long> testCaseIds)
-            throws IOException, APIException, URISyntaxException, KeyManagementException, MethodNotSupportedException,
-            GeneralSecurityException {
+            throws IOException, URISyntaxException, GeneralSecurityException, APIException {
         Map<String, Object> data = new HashMap<String, Object>();
         data.put("suite_id", Long.parseLong(suiteId));
         data.put("name", name);
@@ -139,8 +136,5 @@ public class TestRailConnector {
         data.put("case_ids", testCaseIds);
         String requestURL = String.format("add_run/%s", projectId);
         return (JSONObject) sendPost(requestURL, data);
-
     }
-
-
 }
