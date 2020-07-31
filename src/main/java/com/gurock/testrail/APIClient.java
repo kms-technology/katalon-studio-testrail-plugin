@@ -8,296 +8,212 @@
  *
  * Copyright Gurock Software GmbH. See license.md for details.
  */
- 
+
 package com.gurock.testrail;
 
-import java.net.URL;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.BufferedReader;
 import java.io.UnsupportedEncodingException;
+import java.net.URISyntaxException;
+import java.security.GeneralSecurityException;
+import java.text.MessageFormat;
+import java.util.Base64;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.StatusLine;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.methods.RequestBuilder;
+import org.apache.http.entity.ByteArrayEntity;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
-public class APIClient
-{
-	private String m_user;
-	private String m_password;
-	private String m_url;
+import com.katalon.platform.api.controller.RequestController;
+import com.katalon.platform.api.service.ApplicationManager;
 
-	public APIClient(String base_url)
-	{
-		if (!base_url.endsWith("/"))
-		{
-			base_url += "/";
-		}
-		
-		this.m_url = base_url + "index.php?/api/v2/";
-	}
+public class APIClient {
+    private String m_user;
 
-	/**
-	 * Get/Set User
-	 *
-	 * Returns/sets the user used for authenticating the API requests.
-	 */
-	public String getUser()
-	{
-		return this.m_user;
-	}
+    private String m_password;
 
-	public void setUser(String user)
-	{
-		this.m_user = user;
-	}
+    private String m_url;
 
-	/**
-	 * Get/Set Password
-	 *
-	 * Returns/sets the password used for authenticating the API requests.
-	 */
-	public String getPassword()
-	{
-		return this.m_password;
-	}
+    public APIClient(String base_url) {
+        if (!base_url.endsWith("/")) {
+            base_url += "/";
+        }
 
-	public void setPassword(String password)
-	{
-		this.m_password = password;
-	}
+        this.m_url = base_url + "index.php?/api/v2/";
+    }
 
-	/**
-	 * Send Get
-	 *
-	 * Issues a GET request (read) against the API and returns the result
-	 * (as Object, see below).
-	 *
-	 * Arguments:
-	 *
-	 * uri                  The API method to call including parameters
-	 *                      (e.g. get_case/1)
-	 *
-	 * Returns the parsed JSON response as standard object which can
-	 * either be an instance of JSONObject or JSONArray (depending on the
-	 * API method). In most cases, this returns a JSONObject instance which
-	 * is basically the same as java.util.Map.
-	 */
-	public Object sendGet(String uri)
-		throws MalformedURLException, IOException, APIException
-	{
-		return this.sendRequest("GET", uri, null);
-	}
+    /**
+     * Get/Set User
+     *
+     * Returns/sets the user used for authenticating the API requests.
+     */
+    public String getUser() {
+        return this.m_user;
+    }
 
-	/**
-	 * Send POST
-	 *
-	 * Issues a POST request (write) against the API and returns the result
-	 * (as Object, see below).
-	 *
-	 * Arguments:
-	 *
-	 * uri                  The API method to call including parameters
-	 *                      (e.g. add_case/1)
-	 * data                 The data to submit as part of the request (e.g.,
-	 *                      a map)
-	 *
-	 * Returns the parsed JSON response as standard object which can
-	 * either be an instance of JSONObject or JSONArray (depending on the
-	 * API method). In most cases, this returns a JSONObject instance which
-	 * is basically the same as java.util.Map.	 
-	 */
-	public Object sendPost(String uri, Object data)
-		throws MalformedURLException, IOException, APIException
-	{
-		return this.sendRequest("POST", uri, data);
-	}
-	
-	private Object sendRequest(String method, String uri, Object data)
-		throws MalformedURLException, IOException, APIException
-	{
-		URL url = new URL(this.m_url + uri);
-		
-		// Create the connection object and set the required HTTP method
-		// (GET/POST) and headers (content type and basic auth).
-		HttpURLConnection conn = (HttpURLConnection)url.openConnection();
-		conn.addRequestProperty("Content-Type", "application/json");
-		
-		String auth = getAuthorization(this.m_user, this.m_password);
-		conn.addRequestProperty("Authorization", "Basic " + auth);
-		
-		if (method == "POST")
-		{
-			// Add the POST arguments, if any. We just serialize the passed
-			// data object (i.e. a dictionary) and then add it to the
-			// request body.
-			if (data != null)
-			{				
-				byte[] block = JSONValue.toJSONString(data).
-					getBytes("UTF-8");
+    public void setUser(String user) {
+        this.m_user = user;
+    }
 
-				conn.setDoOutput(true);				
-				OutputStream ostream = conn.getOutputStream();			
-				ostream.write(block);
-				ostream.flush();
-			}
-		}
-		
-		// Execute the actual web request (if it wasn't already initiated
-		// by getOutputStream above) and record any occurred errors (we use
-		// the error stream in this case).
-		int status = conn.getResponseCode();
-		
-		InputStream istream;
-		if (status != 200)
-		{
-			istream = conn.getErrorStream();
-			if (istream == null)
-			{
-				throw new APIException(
-					"TestRail API return HTTP " + status + 
-					" (No additional error message received)"
-				);
-			}
-		}
-		else 
-		{
-			istream = conn.getInputStream();
-		}
-		
-		// Read the response body, if any, and deserialize it from JSON.
-		String text = "";
-		if (istream != null)
-		{
-			BufferedReader reader = new BufferedReader(
-				new InputStreamReader(
-					istream,
-					"UTF-8"
-				)
-			);
-		
-			String line;
-			while ((line = reader.readLine()) != null)
-			{
-				text += line;
-				text += System.getProperty("line.separator");
-			}
-			
-			reader.close();
-		}
-		
-		Object result;
-		if (text != "")
-		{
-			result = JSONValue.parse(text);
-		}
-		else 
-		{
-			result = new JSONObject();
-		}
-		
-		// Check for any occurred errors and add additional details to
-		// the exception message, if any (e.g. the error message returned
-		// by TestRail).
-		if (status != 200)
-		{
-			String error = "No additional error message received";
-			if (result != null && result instanceof JSONObject)
-			{
-				JSONObject obj = (JSONObject) result;
-				if (obj.containsKey("error"))
-				{
-					error = '"' + (String) obj.get("error") + '"';
-				}
-			}
-			
-			throw new APIException(
-				"TestRail API returned HTTP " + status +
-				"(" + error + ")"
-			);
-		}
-		
-		return result;
-	}
-	
-	private static String getAuthorization(String user, String password)
-	{
-		try 
-		{
-			return getBase64((user + ":" + password).getBytes("UTF-8"));
-		}
-		catch (UnsupportedEncodingException e)
-		{
-			// Not thrown
-		}
-		
-		return "";
-	}
-	
-	private static String getBase64(byte[] buffer)
-	{
-		final char[] map = {
-			'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
-			'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
-			'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd',
-			'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
-			'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x',
-			'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7',
-			'8', '9', '+', '/'
-		};
-	
-		StringBuffer sb = new StringBuffer();
-		for (int i = 0; i < buffer.length; i++)
-		{
-			byte b0 = buffer[i++], b1 = 0, b2 = 0;
+    /**
+     * Get/Set Password
+     *
+     * Returns/sets the password used for authenticating the API requests.
+     */
+    public String getPassword() {
+        return this.m_password;
+    }
 
-			int bytes = 3;
-			if (i < buffer.length)
-			{
-				b1 = buffer[i++];
-				if (i < buffer.length)
-				{
-					b2 = buffer[i];
-				}
-				else 
-				{
-					bytes = 2;
-				}
-			}
-			else
-			{
-				bytes = 1;
-			}
-			
-			int total = (b0 << 16) | (b1 << 8) | b2;
-			
-			switch (bytes)
-			{
-				case 3:
-					sb.append(map[(total >> 18) & 0x3f]);
-					sb.append(map[(total >> 12) & 0x3f]);
-					sb.append(map[(total >> 6) & 0x3f]);
-					sb.append(map[total & 0x3f]);
-					break;
-					
-				case 2:
-					sb.append(map[(total >> 18) & 0x3f]);
-					sb.append(map[(total >> 12) & 0x3f]);
-					sb.append(map[(total >> 6) & 0x3f]);
-					sb.append('=');
-					break;
-					
-				case 1:
-					sb.append(map[(total >> 18) & 0x3f]);
-					sb.append(map[(total >> 12) & 0x3f]);
-					sb.append('=');
-					sb.append('=');
-					break;
-			}
-		}
-	
-		return sb.toString();
-	}
+    public void setPassword(String password) {
+        this.m_password = password;
+    }
+
+    /**
+     * Send Get
+     *
+     * Issues a GET request (read) against the API and returns the result
+     * (as Object, see below).
+     *
+     * Arguments:
+     *
+     * uri The API method to call including parameters
+     * (e.g. get_case/1)
+     *
+     * Returns the parsed JSON response as standard object which can
+     * either be an instance of JSONObject or JSONArray (depending on the
+     * API method). In most cases, this returns a JSONObject instance which
+     * is basically the same as java.util.Map.
+     * 
+     * @throws APIException
+     * @throws URISyntaxException
+     * @throws IOException
+     */
+    public Object sendGet(String uri) throws IOException, URISyntaxException, GeneralSecurityException, APIException {
+        return this.sendRequest("GET", uri, null);
+    }
+
+    /**
+     * Send POST
+     *
+     * Issues a POST request (write) against the API and returns the result
+     * (as Object, see below).
+     *
+     * Arguments:
+     *
+     * uri The API method to call including parameters
+     * (e.g. add_case/1)
+     * data The data to submit as part of the request (e.g.,
+     * a map)
+     *
+     * Returns the parsed JSON response as standard object which can
+     * either be an instance of JSONObject or JSONArray (depending on the
+     * API method). In most cases, this returns a JSONObject instance which
+     * is basically the same as java.util.Map.
+     * 
+     * @throws APIException
+     * @throws URISyntaxException
+     * @throws IOException
+     */
+    public Object sendPost(String uri, Object data)
+            throws IOException, URISyntaxException, GeneralSecurityException, APIException {
+        return this.sendRequest("POST", uri, data);
+    }
+
+    private Object sendRequest(String method, String uri, Object data)
+            throws IOException, URISyntaxException, GeneralSecurityException, APIException {
+        String absoluteUri = this.m_url + uri;
+
+        boolean isMethodHasBody = method == "POST" || method == "PUT" || method == "PATCH";
+        HttpUriRequest request = RequestBuilder.create(method).setUri(absoluteUri).build();
+
+        if (isMethodHasBody && data != null) {
+            byte[] requestBody = JSONValue.toJSONString(data).getBytes("UTF-8");
+            ByteArrayOutputStream outstream = new ByteArrayOutputStream();
+            outstream.write(requestBody);
+
+            byte[] bytes = outstream.toByteArray();
+            ByteArrayEntity entity = new ByteArrayEntity(bytes);
+            entity.setChunked(false);
+            ((HttpPost) request).setEntity(entity);
+        }
+
+        request.setHeader("Content-Type", "application/json");
+
+        String basicAuth = getAuthorization(this.m_user, this.m_password);
+        request.setHeader("Authorization", "Basic " + basicAuth);
+
+        RequestController requestController = ApplicationManager.getInstance()
+                .getControllerManager()
+                .getController(RequestController.class);
+
+        HttpResponse response = requestController.sendWithProxy(request);
+
+        StatusLine statusLine = response.getStatusLine();
+        int statusCode = statusLine.getStatusCode();
+
+        InputStream istream = null;
+        if (statusCode == HttpStatus.SC_OK) {
+            istream = response.getEntity().getContent();
+        } else {
+            String reason = statusLine.getReasonPhrase();
+            throw new APIException(MessageFormat.format("TestRail API return HTTP code {0} ({1})", statusCode, reason));
+        }
+
+        String textContent = "";
+        if (istream != null) {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(istream, "UTF-8"));
+
+            String line;
+            String lineSeparator = System.getProperty("line.separator");
+            while ((line = reader.readLine()) != null) {
+                textContent += line + lineSeparator;
+            }
+
+            reader.close();
+        }
+
+        Object result;
+        if (StringUtils.isNotBlank(textContent)) {
+            result = JSONValue.parse(textContent);
+        } else {
+            result = new JSONObject();
+        }
+
+        // Check for any occurred errors and add additional details to
+        // the exception message, if any (e.g. the error message returned
+        // by TestRail).
+        if (statusCode != HttpStatus.SC_OK) {
+            String error = "No additional error message received";
+            if (result != null && result instanceof JSONObject) {
+                JSONObject obj = (JSONObject) result;
+                if (obj.containsKey("error")) {
+                    error = MessageFormat.format("\"{0}\"", obj.get("error"));
+                }
+            }
+
+            throw new APIException(
+                    MessageFormat.format("TestRail API returned HTTP code {0} ({1})", statusCode, error));
+        }
+
+        return result;
+    }
+
+    private static String getAuthorization(String user, String password) {
+        try {
+            return Base64.getEncoder().encodeToString((user + ":" + password).getBytes("UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            // Not thrown
+        }
+
+        return "";
+    }
 }

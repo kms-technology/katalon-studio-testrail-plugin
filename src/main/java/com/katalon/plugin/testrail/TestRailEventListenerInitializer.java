@@ -144,7 +144,7 @@ public class TestRailEventListenerInitializer implements EventListenerInitialize
                         body.put("case_ids", testCaseIdInRun);
                         connector.updateRun(testRunId, body);
                     }
-                    Map<String, List> requestBody = new HashMap<>();
+                    Map<String, Object> requestBody = new HashMap<>();
                     requestBody.put("results", data);
                     connector.addMultipleResultForCases(testRunId, requestBody);
                 }
