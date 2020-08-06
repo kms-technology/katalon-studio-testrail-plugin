@@ -46,8 +46,9 @@ public class TestRailQueryingTestSuite implements DynamicQueryingTestSuiteDescri
                 Map<String, String> props = integration.getProperties();
                 if (props.containsKey(TestRailConstants.INTEGRATION_TESTCASE_ID)) {
                     String testCaseId = props.get(TestRailConstants.INTEGRATION_TESTCASE_ID);
-                    if (testCaseIdInRun.contains(Long.parseLong(testCaseId))) {
-                        System.out.println("Found testCaseId " + testCaseId);
+                    String filteredTestCaseId = testCaseId != null ? testCaseId.replaceAll("\\D", "") : null;
+                    if (testCaseIdInRun.contains(Long.parseLong(filteredTestCaseId))) {
+                        System.out.println("Found testCaseId " + filteredTestCaseId);
                         resultTestCases.add(testCaseEntity);
                     }
                 }
