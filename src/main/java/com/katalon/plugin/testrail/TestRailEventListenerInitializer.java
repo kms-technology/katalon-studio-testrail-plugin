@@ -120,9 +120,10 @@ public class TestRailEventListenerInitializer implements EventListenerInitialize
                                 return null;
                             }
                             String testRailTCId = integration.getProperties().get(TestRailConstants.INTEGRATION_TESTCASE_ID);
-                            updateIds.add(Long.parseLong(testRailTCId));
+                            String filteredTestCaseId = testRailTCId != null ? testRailTCId.replaceAll("\\D", "") : null;
+                            updateIds.add(Long.parseLong(filteredTestCaseId));
                             Map<String, String> resultMap = new HashMap<>();
-                            resultMap.put("case_id", testRailTCId);
+                            resultMap.put("case_id", filteredTestCaseId);
                             resultMap.put("status_id", status);
                             return resultMap;
                         } catch (Exception e) {
