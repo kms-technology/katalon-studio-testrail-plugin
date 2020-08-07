@@ -26,6 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
+import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
@@ -132,8 +133,8 @@ public class APIClient {
             throws IOException, URISyntaxException, GeneralSecurityException, APIException {
         String absoluteUri = this.m_url + uri;
 
+        RequestBuilder requestBuilder = RequestBuilder.create(method).setUri(absoluteUri);
         boolean isMethodHasBody = method == "POST" || method == "PUT" || method == "PATCH";
-        HttpUriRequest request = RequestBuilder.create(method).setUri(absoluteUri).build();
 
         if (isMethodHasBody && data != null) {
             byte[] requestBody = JSONValue.toJSONString(data).getBytes("UTF-8");
@@ -143,8 +144,11 @@ public class APIClient {
             byte[] bytes = outstream.toByteArray();
             ByteArrayEntity entity = new ByteArrayEntity(bytes);
             entity.setChunked(false);
-            ((HttpPost) request).setEntity(entity);
+
+            requestBuilder.setEntity(entity);
         }
+
+        HttpUriRequest request = requestBuilder.build();
 
         request.setHeader("Content-Type", "application/json");
 
