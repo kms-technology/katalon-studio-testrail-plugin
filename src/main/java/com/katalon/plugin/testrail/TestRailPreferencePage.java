@@ -185,15 +185,22 @@ public class TestRailPreferencePage extends PreferencePage implements TestRailCo
         try {
             PluginPreference pluginStore = getPluginStore();
 
-            pluginStore.setBoolean(TestRailConstants.PREF_TESTRAIL_ENABLED, chckEnableIntegration.getSelection());
-            pluginStore.setString(TestRailConstants.PREF_TESTRAIL_USERNAME, txtUsername.getText());
-            pluginStore.setString(TestRailConstants.PREF_TESTRAIL_PASSWORD, txtPassword.getText());
-            pluginStore.setString(TestRailConstants.PREF_TESTRAIL_URL, txtUrl.getText());
-            pluginStore.setString(TestRailConstants.PREF_TESTRAIL_PROJECT, txtProject.getText());
+			if(pluginStore == null) {
+                return super.performOk();
+            }
+			
+            if(chckEnableIntegration != null && txtUsername != null && txtPassword != null 
+                    && txtUrl != null && txtProject != null) {
+                pluginStore.setBoolean(TestRailConstants.PREF_TESTRAIL_ENABLED, chckEnableIntegration.getSelection());
+                pluginStore.setString(TestRailConstants.PREF_TESTRAIL_USERNAME, txtUsername.getText());
+                pluginStore.setString(TestRailConstants.PREF_TESTRAIL_PASSWORD, txtPassword.getText());
+                pluginStore.setString(TestRailConstants.PREF_TESTRAIL_URL, txtUrl.getText());
+                pluginStore.setString(TestRailConstants.PREF_TESTRAIL_PROJECT, txtProject.getText());
 
-            pluginStore.save();
+                pluginStore.save();
+            }
 
-            return true;
+            return super.performOk();
         } catch (ResourceException e) {
             MessageDialog.openWarning(getShell(), "Warning", "Unable to update TestRail Integration Settings.");
             return false;
