@@ -41,6 +41,12 @@ public class TestRailPreferencePage extends PreferencePage implements TestRailCo
     private Label lblConnectionStatus;
 
     private Thread thread;
+    
+    private boolean initialized = false;
+    
+    private boolean isInitialized() {
+        return initialized;
+    }
 
     @Override
     protected Control createContents(Composite composite) {
@@ -91,6 +97,8 @@ public class TestRailPreferencePage extends PreferencePage implements TestRailCo
         handleControlModifyEventListeners();
         initializeInput();
 
+        initialized = true;
+        
         return container;
     }
 
@@ -184,21 +192,18 @@ public class TestRailPreferencePage extends PreferencePage implements TestRailCo
     public boolean performOk() {
         try {
             PluginPreference pluginStore = getPluginStore();
-
-			if(pluginStore == null) {
+            
+            if (!isInitialized()) {
                 return super.performOk();
             }
-			
-            if(chckEnableIntegration != null && txtUsername != null && txtPassword != null 
-                    && txtUrl != null && txtProject != null) {
-                pluginStore.setBoolean(TestRailConstants.PREF_TESTRAIL_ENABLED, chckEnableIntegration.getSelection());
-                pluginStore.setString(TestRailConstants.PREF_TESTRAIL_USERNAME, txtUsername.getText());
-                pluginStore.setString(TestRailConstants.PREF_TESTRAIL_PASSWORD, txtPassword.getText());
-                pluginStore.setString(TestRailConstants.PREF_TESTRAIL_URL, txtUrl.getText());
-                pluginStore.setString(TestRailConstants.PREF_TESTRAIL_PROJECT, txtProject.getText());
+            
+            pluginStore.setBoolean(TestRailConstants.PREF_TESTRAIL_ENABLED, chckEnableIntegration.getSelection());
+            pluginStore.setString(TestRailConstants.PREF_TESTRAIL_USERNAME, txtUsername.getText());
+            pluginStore.setString(TestRailConstants.PREF_TESTRAIL_PASSWORD, txtPassword.getText());
+            pluginStore.setString(TestRailConstants.PREF_TESTRAIL_URL, txtUrl.getText());
+            pluginStore.setString(TestRailConstants.PREF_TESTRAIL_PROJECT, txtProject.getText());
 
-                pluginStore.save();
-            }
+            pluginStore.save();
 
             return super.performOk();
         } catch (ResourceException e) {
