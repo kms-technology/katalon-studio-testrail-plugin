@@ -41,12 +41,6 @@ public class TestRailPreferencePage extends PreferencePage implements TestRailCo
     private Label lblConnectionStatus;
 
     private Thread thread;
-    
-    private boolean initialized = false;
-    
-    private boolean isInitialized() {
-        return initialized;
-    }
 
     @Override
     protected Control createContents(Composite composite) {
@@ -96,8 +90,6 @@ public class TestRailPreferencePage extends PreferencePage implements TestRailCo
 
         handleControlModifyEventListeners();
         initializeInput();
-
-        initialized = true;
         
         return container;
     }
@@ -193,7 +185,7 @@ public class TestRailPreferencePage extends PreferencePage implements TestRailCo
         try {
             PluginPreference pluginStore = getPluginStore();
             
-            if (!isInitialized()) {
+            if (!super.isControlCreated()) {
                 return super.performOk();
             }
             
