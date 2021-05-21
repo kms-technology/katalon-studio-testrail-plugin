@@ -90,7 +90,7 @@ public class TestRailPreferencePage extends PreferencePage implements TestRailCo
 
         handleControlModifyEventListeners();
         initializeInput();
-
+        
         return container;
     }
 
@@ -184,7 +184,11 @@ public class TestRailPreferencePage extends PreferencePage implements TestRailCo
     public boolean performOk() {
         try {
             PluginPreference pluginStore = getPluginStore();
-
+            
+            if (!super.isControlCreated()) {
+                return super.performOk();
+            }
+            
             pluginStore.setBoolean(TestRailConstants.PREF_TESTRAIL_ENABLED, chckEnableIntegration.getSelection());
             pluginStore.setString(TestRailConstants.PREF_TESTRAIL_USERNAME, txtUsername.getText());
             pluginStore.setString(TestRailConstants.PREF_TESTRAIL_PASSWORD, txtPassword.getText());
@@ -193,7 +197,7 @@ public class TestRailPreferencePage extends PreferencePage implements TestRailCo
 
             pluginStore.save();
 
-            return true;
+            return super.performOk();
         } catch (ResourceException e) {
             MessageDialog.openWarning(getShell(), "Warning", "Unable to update TestRail Integration Settings.");
             return false;
