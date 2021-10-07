@@ -76,13 +76,16 @@ public class TestRailConnector {
     }
 
     public JSONArray getTest(String id) throws IOException, URISyntaxException, GeneralSecurityException, APIException {
-        return (JSONArray) sendGet("get_tests/" + id);
+        JSONObject response = (JSONObject) sendGet("get_tests/" + id);
+        return (JSONArray) response.get("tests");
     }
 
     public List<Long> getTestCaseIdInRun(String id)
             throws IOException, URISyntaxException, GeneralSecurityException, APIException {
         String requestURL = "get_tests/" + id;
-        JSONArray jsonArray = (JSONArray) sendGet(requestURL);
+        JSONObject response = (JSONObject) sendGet(requestURL);
+        
+        JSONArray jsonArray = (JSONArray) response.get("tests");
 
         List<Long> listId = new ArrayList<>();
 
