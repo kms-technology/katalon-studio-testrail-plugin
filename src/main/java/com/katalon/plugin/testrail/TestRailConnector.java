@@ -75,14 +75,24 @@ public class TestRailConnector {
         return (JSONObject) sendGet("get_project/" + projectId);
     }
 
-    public JSONArray getTest(String id) throws IOException, URISyntaxException, GeneralSecurityException, APIException {
-        return (JSONArray) sendGet("get_tests/" + id);
-    }
-
+    @SuppressWarnings("unchecked")
     public List<Long> getTestCaseIdInRun(String id)
             throws IOException, URISyntaxException, GeneralSecurityException, APIException {
-        String requestURL = "get_tests/" + id;
-        JSONArray jsonArray = (JSONArray) sendGet(requestURL);
+        String paginationNextURL = null;
+        String requestURL = "";
+        JSONArray jsonArray = new JSONArray();
+        do {
+            if (paginationNextURL != null) {
+                requestURL = shortenURL(paginationNextURL);
+            } else {
+                requestURL = "get_tests/" + id;
+            }           
+            JSONObject response = (JSONObject) sendGet(requestURL);
+            
+            JSONObject paginationLinks = (JSONObject) response.get("_links");
+            paginationNextURL = (String) paginationLinks.get("next");
+            jsonArray.addAll((JSONArray) response.get("tests"));
+        } while (paginationNextURL != null);
 
         List<Long> listId = new ArrayList<>();
 
@@ -136,5 +146,13 @@ public class TestRailConnector {
         data.put("case_ids", testCaseIds);
         String requestURL = String.format("add_run/%s", projectId);
         return (JSONObject) sendPost(requestURL, data);
+    }
+    
+    private String shortenURL(String url) {
+        final String prefix = "/api/v2/";
+        if (url.startsWith(prefix)) {
+            return url.substring(prefix.length());
+        }
+        return url;
     }
 }
