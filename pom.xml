@@ -12,7 +12,7 @@
 
     <groupId>com.katalon</groupId>
     <artifactId>katalon-studio-testrail-plugin</artifactId>
-    <version>1.0.9</version>
+    <version>1.1.1</version>
 
     <packaging>bundle</packaging>
 
