@@ -68,7 +68,7 @@ public class TestRailEventListenerInitializer implements EventListenerInitialize
                 status = "5"; //FAILED
                 break;
             default:
-                status = "0";
+                status = "2"; // BLOCKED
         }
         return status;
     }
