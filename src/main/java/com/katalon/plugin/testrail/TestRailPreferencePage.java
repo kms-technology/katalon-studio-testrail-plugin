@@ -15,6 +15,8 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
+import com.katalon.platform.api.exception.CryptoException;
+import com.katalon.platform.api.exception.InvalidDataTypeFormatException;
 import com.katalon.platform.api.exception.ResourceException;
 import com.katalon.platform.api.preference.PluginPreference;
 import com.katalon.platform.api.service.ApplicationManager;
@@ -191,10 +193,15 @@ public class TestRailPreferencePage extends PreferencePage implements TestRailCo
             
             pluginStore.setBoolean(TestRailConstants.PREF_TESTRAIL_ENABLED, chckEnableIntegration.getSelection());
             pluginStore.setString(TestRailConstants.PREF_TESTRAIL_USERNAME, txtUsername.getText());
-            pluginStore.setString(TestRailConstants.PREF_TESTRAIL_PASSWORD, txtPassword.getText());
             pluginStore.setString(TestRailConstants.PREF_TESTRAIL_URL, txtUrl.getText());
             pluginStore.setString(TestRailConstants.PREF_TESTRAIL_PROJECT, txtProject.getText());
-
+            try {
+                pluginStore.setString(TestRailConstants.PREF_TESTRAIL_PASSWORD, txtPassword.getText(), true);
+            } catch (CryptoException e) {
+                // Cannot encrypt the password
+                e.printStackTrace();
+            }
+            pluginStore.setBoolean(TestRailConstants.IS_ENCRYPTION_MIGRATED, true);
             pluginStore.save();
 
             return super.performOk();
@@ -207,14 +214,23 @@ public class TestRailPreferencePage extends PreferencePage implements TestRailCo
     private void initializeInput() {
         try {
             PluginPreference pluginStore = getPluginStore();
-
+            try {
+                TestRailHelper.doEncryptionMigrated(pluginStore);
+            } catch (CryptoException | ResourceException e) {
+                MessageDialog.openError(getShell(), "Error", e.getMessage());
+            }
             chckEnableIntegration.setSelection(pluginStore.getBoolean(TestRailConstants.PREF_TESTRAIL_ENABLED, false));
             chckEnableIntegration.notifyListeners(SWT.Selection, new Event());
 
             txtUsername.setText(pluginStore.getString(TestRailConstants.PREF_TESTRAIL_USERNAME, ""));
-            txtPassword.setText(pluginStore.getString(TestRailConstants.PREF_TESTRAIL_PASSWORD, ""));
             txtUrl.setText(pluginStore.getString(TestRailConstants.PREF_TESTRAIL_URL, ""));
             txtProject.setText(pluginStore.getString(TestRailConstants.PREF_TESTRAIL_PROJECT, ""));
+            try {
+                txtPassword.setText(pluginStore.getString(TestRailConstants.PREF_TESTRAIL_PASSWORD, "", true));
+            } catch (InvalidDataTypeFormatException | CryptoException e) {
+                // Cannot decrypt the password
+                e.printStackTrace();
+            }
 
             container.layout(true, true);
         } catch (ResourceException e) {

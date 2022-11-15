@@ -1,15 +1,21 @@
 package com.katalon.plugin.testrail;
 
-import com.katalon.platform.api.controller.FolderController;
-import com.katalon.platform.api.exception.ResourceException;
-import com.katalon.platform.api.extension.DynamicQueryingTestSuiteDescription;
-import com.katalon.platform.api.model.*;
-import com.katalon.platform.api.preference.PluginPreference;
-import com.katalon.platform.api.service.ApplicationManager;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import com.katalon.platform.api.controller.FolderController;
+import com.katalon.platform.api.exception.CryptoException;
+import com.katalon.platform.api.exception.InvalidDataTypeFormatException;
+import com.katalon.platform.api.exception.ResourceException;
+import com.katalon.platform.api.extension.DynamicQueryingTestSuiteDescription;
+import com.katalon.platform.api.model.FolderEntity;
+import com.katalon.platform.api.model.Integration;
+import com.katalon.platform.api.model.ProjectEntity;
+import com.katalon.platform.api.model.TestCaseEntity;
+import com.katalon.platform.api.model.TestSuiteEntity;
+import com.katalon.platform.api.preference.PluginPreference;
+import com.katalon.platform.api.service.ApplicationManager;
 
 public class TestRailQueryingTestSuite implements DynamicQueryingTestSuiteDescription, TestRailComponent {
     private FolderController folderController = ApplicationManager.getInstance()
@@ -28,11 +34,19 @@ public class TestRailQueryingTestSuite implements DynamicQueryingTestSuiteDescri
 
         String testRunId = TestRailHelper.parseId(s, "^R(\\d+)");
         PluginPreference preferences = getPluginStore();
-        TestRailConnector connector = new TestRailConnector(
-                preferences.getString(TestRailConstants.PREF_TESTRAIL_URL, ""),
-                preferences.getString(TestRailConstants.PREF_TESTRAIL_USERNAME, ""),
-                preferences.getString(TestRailConstants.PREF_TESTRAIL_PASSWORD, "")
-        );
+        TestRailConnector connector = null;
+        try {
+            TestRailHelper.doEncryptionMigrated(preferences);
+        } catch (CryptoException |ResourceException e) {
+            e.printStackTrace();
+        }
+        try {
+            connector = new TestRailConnector(preferences.getString(TestRailConstants.PREF_TESTRAIL_URL, ""),
+                    preferences.getString(TestRailConstants.PREF_TESTRAIL_USERNAME, ""),
+                    preferences.getString(TestRailConstants.PREF_TESTRAIL_PASSWORD, "", true));
+        } catch (InvalidDataTypeFormatException | CryptoException e) {
+            e.printStackTrace(System.out);
+        }
         List<TestCaseEntity> resultTestCases = new ArrayList<>();
         if (testRunId.equals("")) return resultTestCases;
 
