@@ -19,5 +19,15 @@ public interface TestRailConstants {
 
     String INTEGRATION_TESTCASE_ID = "testRail.testcase.id";
 
-    String IS_ENCRYPTION_MIGRATED = "isEncryptionMigrated";
+    String IS_ENCRYPTION_MIGRATED = "testRail.isEncryptionMigrated";
+
+    // TestRailPreferencePage
+    String LBL_WARNING_PASSWORD = "* From version 8.5.5, your TestRail password is encrypted";
+
+    String LINK_PASSWORD_ENCRYPT = "https://docs.katalon.com/docs/organize/integration-for-organizing-tests/configure-testrail-integration-in-katalon-studio";
+
+    // HelpToolItem
+    String HELP_ICON_URI = "/icons/help_16.png";
+
+    String HRLP_TOOL_TIP = "Help";
 }

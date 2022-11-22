@@ -2,6 +2,7 @@ package com.katalon.plugin.testrail;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.PreferencePage;
+import org.eclipse.jface.resource.FontDescriptor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -21,6 +22,7 @@ import com.katalon.platform.api.exception.ResourceException;
 import com.katalon.platform.api.preference.PluginPreference;
 import com.katalon.platform.api.service.ApplicationManager;
 import com.katalon.platform.api.ui.UISynchronizeService;
+import com.katalon.plugin.components.HelpComposite;
 
 public class TestRailPreferencePage extends PreferencePage implements TestRailComponent {
 
@@ -52,6 +54,15 @@ public class TestRailPreferencePage extends PreferencePage implements TestRailCo
         chckEnableIntegration = new Button(container, SWT.CHECK);
         chckEnableIntegration.setText("Using TestRail");
 
+        Composite passEncryptComposite = new Composite(container, SWT.NONE);
+        GridLayout glPassEncrypt = new GridLayout(2, false);
+        passEncryptComposite.setLayout(glPassEncrypt);
+        Label warningLbl = new Label(passEncryptComposite, SWT.NONE);
+        warningLbl.setText(TestRailConstants.LBL_WARNING_PASSWORD);
+        FontDescriptor fontDescriptor = FontDescriptor.createFrom(warningLbl.getFont());
+        warningLbl.setFont(fontDescriptor.setStyle(SWT.ITALIC).createFont(warningLbl.getDisplay()));
+        new HelpComposite(passEncryptComposite, TestRailConstants.LINK_PASSWORD_ENCRYPT);
+        
         grpAuthentication = new Group(container, SWT.NONE);
         grpAuthentication.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
         GridLayout glAuthentication = new GridLayout(2, false);
